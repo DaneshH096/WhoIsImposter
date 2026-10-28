@@ -22,7 +22,7 @@ function App(){
  const metadata=phaseMeta[state?.phase??'lobby'];
  const left=useMemo(()=>state?.deadline?Math.max(0,Math.ceil((new Date(state.deadline).getTime()-clock)/1000)):null,[state?.deadline,clock]);
  useEffect(()=>{const t=setInterval(()=>setClock(Date.now()),300);return()=>clearInterval(t)},[]);
- useEffect(()=>{if(!sb||demo||!state?.code)return; const ch=sb.channel(`room:${state.code}`).on('postgres_changes',{event:'*',schema:'public',table:'game_rooms',filter:`code=eq.${state.code}`},()=>refresh()).subscribe(); const poll=setInterval(refresh,4000);return()=>{clearInterval(poll);void sb.removeChannel(ch)}},[state?.code,demo,session]);
+ useEffect(()=>{if(!sb||demo||!state?.code)return; const ch=sb.channel(`room:${state.code}`).on('postgres_changes',{event:'*',schema:'public',table:'game_rooms',filter:`code=eq.${state.code}`},()=>refresh()).subscribe(); const poll=setInterval(()=>void refresh(),4000);return()=>{clearInterval(poll);void sb.removeChannel(ch)}},[state?.code,demo,session]);
  async function refresh(code=state?.code){if(demo||!sb||!code)return; const out=await call('state',{code});if(out?.state)setState(out.state);setRole(out?.role??null)}
  async function call(action:string,payload:Record<string,unknown>={}){if(!sb){setError('Connect Supabase to create a real room. The preview lobby is for visual preview only.');return null} const {data,error:e}=await sb.functions.invoke('game',{body:{action,...payload}});if(e||data?.error){setError(data?.error??e?.message??'Something went wrong. Try again.');return null}setError('');if(data?.state){setState(data.state);localStorage.setItem('impostor-room-code',data.state.code)}if(data?.role!==undefined)setRole(data.role);return data}
  async function ensureSession(){if(!sb)return false;if(session)return true;const {data,error:e}=await sb.auth.signInAnonymously();if(e){setError('Could not start a guest session. Check that Supabase anonymous sign-in is enabled.');return false}setSession(data.session);return true}
@@ -59,3 +59,4 @@ function App(){
  </main>
 }
 export default App;
+
