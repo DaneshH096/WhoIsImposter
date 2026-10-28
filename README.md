@@ -42,6 +42,7 @@ The Supabase database migration enables `pg_cron` and schedules server phase pro
 - `npm run build` — TypeScript check and production bundle
 - `npm test` — Vitest rule tests
 - `npm run test:e2e` — Playwright browser checks (install a browser with `npx playwright install chromium` first)
+- PowerShell live endpoint checks: `$env:RUN_LIVE_GAME_TESTS='true'; npm run test:e2e` (requires `.env.local` to target a Supabase project; uses disposable anonymous rooms)
 
 Voice clues use browser `SpeechRecognition` or `webkitSpeechRecognition` when available. Microphone permission is requested by the browser after the player taps the mic; English is selected by default with Kannada available. Recognition stays browser-managed, and only reviewed clue text is sent to the game. Typed entry remains available everywhere.
 
@@ -53,9 +54,11 @@ Import this repository into Vercel, select the Vite preset, and set `VITE_SUPABA
 
 - `npm test`: 7 Vitest tests passed.
 - `npm run build`: TypeScript check and Vite production build passed.
-- `npm run test:e2e`: 5 Playwright checks cover responsive layout, lobby rendering, invite URL copying, mock speech transcript review, and the final leaderboard.
+- `npm run test:e2e`: 5 browser checks cover responsive layout, lobby rendering, invite URL copying, mock speech transcript review, and the final leaderboard. Two additional live API checks run when `RUN_LIVE_GAME_TESTS=true` and verify server-side host authorization, removal and reconnection blocks, secret isolation, and concurrent room capacity.
 - Production deployment: [https://who-is-the-impostor-taupe.vercel.app](https://who-is-the-impostor-taupe.vercel.app) returned HTTP 200 over HTTPS.
 - Four independent browser sessions created and joined a production room, received private role reveals, submitted clues and votes, and completed three rounds. The database recorded three settled round results and a finished leaderboard.
+- Follow-up production acceptance: four separate browser sessions joined through a copied invitation URL, used mocked browser speech recognition to submit a clue, exercised duplicate clue/vote and self-vote rejection, completed three rounds, reloaded the final leaderboard, and matched expected scores (6 for detectives, 3 for the impostor who guessed correctly). The database confirmed one impostor and one result per round. Discussion deadlines were expired in a controlled test room to shorten this acceptance run; production discussion duration remains 60 seconds.
+- Direct live Edge Function checks with independent anonymous JWTs confirmed creator ownership, non-host start/kick denial, self-removal denial, host removal, removed-member action denial, and role/word isolation. The scheduled worker was also checked for the 120-second host grace period, deterministic oldest-player transfer, and no host reclaim after creator reconnect.
 - Supabase project `zbejlzoavvuskyrlykte` is active. Migrations through `host_kick_invites_fast_results` are applied, the `game` Edge Function is active with JWT verification, anonymous guest sign-in works, and the one-second deadline worker is scheduled. Performance advisor reports no findings; the security advisor reports the existing private tables with intentionally no client policies (direct table access is revoked) and configuration warnings.
 - The requested `dkhosur.online/projects/whoisimposter` path is not routed yet. The apex currently resolves to two AWS IPv4 addresses and is not attached to the Vercel project; HTTPS checks to the current origin failed. The existing site host needs a path proxy/rewrite to this Vercel deployment, or the domain needs to be moved to a hosting setup that can serve the app at that path. Do not attach the apex to this Vercel project unless it is intended to replace the current whole-domain site.
 
