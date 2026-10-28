@@ -53,7 +53,7 @@ Import this repository into Vercel, select the Vite preset, and set `VITE_SUPABA
 
 - `npm test`: 7 Vitest tests passed.
 - `npm run build`: TypeScript check and Vite production build passed.
-- `npm run test:e2e`: 4 Playwright checks cover responsive layout, lobby rendering, invite URL copying, and mock speech transcript review.
+- `npm run test:e2e`: 5 Playwright checks cover responsive layout, lobby rendering, invite URL copying, mock speech transcript review, and the final leaderboard.
 - Production deployment: [https://who-is-the-impostor-taupe.vercel.app](https://who-is-the-impostor-taupe.vercel.app) returned HTTP 200 over HTTPS.
 - Four independent browser sessions created and joined a production room, received private role reveals, submitted clues and votes, and completed three rounds. The database recorded three settled round results and a finished leaderboard.
 - Supabase project `zbejlzoavvuskyrlykte` is active. Migrations through `host_kick_invites_fast_results` are applied, the `game` Edge Function is active with JWT verification, anonymous guest sign-in works, and the one-second deadline worker is scheduled. Performance advisor reports no findings; the security advisor reports the existing private tables with intentionally no client policies (direct table access is revoked) and configuration warnings.
