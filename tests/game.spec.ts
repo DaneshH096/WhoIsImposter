@@ -48,3 +48,13 @@ test('voice clue transcript is reviewed in the clue field before submission', as
   await expect(page.getByText(/stores only the text you submit/i)).toBeVisible();
 });
 
+test('finished match shows a winner and final leaderboard', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button',{name:/peek at the lobby design/i}).click();
+  await page.getByRole('button',{name:/start round/i}).click();
+  for(let i=0;i<5;i++) await page.getByRole('button',{name:/preview: advance phase/i}).click();
+  await expect(page.getByRole('heading',{name:'Final scores'})).toBeVisible();
+  await expect(page.getByText(/wins the suspicion crown/i)).toBeVisible();
+  await expect(page.getByText('FINAL LEADERBOARD')).toBeVisible();
+});
+
