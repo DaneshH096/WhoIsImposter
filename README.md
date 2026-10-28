@@ -49,13 +49,15 @@ Import this repository into Vercel, select the Vite preset, and set `VITE_SUPABA
 
 ## Verification and rollout status
 
-- `npm test`: 7 unit tests passed.
+- `npm test`: 7 Vitest tests passed.
 - `npm run build`: TypeScript check and Vite production build passed.
 - `npm run test:e2e`: 2 Playwright checks passed for the responsive landing page and lobby preview.
-- A production database integration check exercised eight-player capacity, private role views, duplicate clue/vote rejection, self-vote rejection, deadline advancement, scoring idempotency, and a complete three-round match. The temporary test room and rate-limit rows were removed by the check.
-- Supabase project `zbejlzoavvuskyrlykte` has both migrations applied, the `game` Edge Function active with JWT verification, and the one-second deadline worker scheduled. The security advisor no longer reports an exposed `SECURITY DEFINER` helper; the remaining RLS notices are intentional because direct access to private game tables is revoked.
-- The hosted project still has Anonymous Sign-Ins disabled. `supabase/config.toml` enables it; apply that setting with `supabase config push` after linking and logging into the project. The Vercel project has its public Supabase environment variables configured, but no Vercel deployment URL is available until guest sign-in is enabled and the frontend is deployed.
+- Production deployment: [https://who-is-the-impostor-taupe.vercel.app](https://who-is-the-impostor-taupe.vercel.app) returned HTTP 200 over HTTPS.
+- Four independent browser sessions created and joined a production room, received private role reveals, submitted clues and votes, and completed three rounds. The database recorded three settled round results and a finished leaderboard.
+- Supabase project `zbejlzoavvuskyrlykte` is active. Both migrations are applied, the `game` Edge Function is active with JWT verification, anonymous guest sign-in works, and the one-second deadline worker is scheduled. A follow-up migration prevents read-only state polling from causing Realtime broadcast loops.
+- The requested `dkhosur.online/projects/whoisimposter` path is not routed yet. The apex currently resolves to two AWS IPv4 addresses and is not attached to the Vercel project; HTTPS checks to the current origin failed. The existing site host needs a path proxy/rewrite to this Vercel deployment, or the domain needs to be moved to a hosting setup that can serve the app at that path. Do not attach the apex to this Vercel project unless it is intended to replace the current whole-domain site.
 
 ## Rules and phase durations
 
 Each match has three rounds. The host starts each round, and the server runs each phase through its deadline (clues and votes can finish early after everyone submits). The default role reveal, clue, discussion, voting, and results durations are 15, 60, 60, 30, and 15 seconds. Every round selects one impostor and a related word pair; detectives share the other word. Each player submits one clue and one private vote, with no self-votes. A tie produces no accusation and counts as impostor survival. Correct detective votes earn 2 points; an impostor who survives gains 2, and a correct impostor word guess gains 1. Guest sessions persist in the browser for reconnecting. Host transfer occurs on a subsequent member request after the host has been inactive for 30 seconds.
+
