@@ -1,0 +1,7 @@
+project_id = "who-is-the-impostor"
+
+[auth]
+enable_anonymous_sign_ins = true
+
+[functions.game]
+verify_jwt = true
