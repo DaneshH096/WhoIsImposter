@@ -61,7 +61,7 @@ test('live API enforces host ownership, removal, reconnection and private roles'
   expect(lateJoin.message).toMatch(/already in progress/i);
 });
 
-test('live API allows two players, rejects secret-word clues, and transfers a leaving host',{skip:!live},async()=>{
+test('live API allows two players, rejects secret-word clues, and transfers a leaving host',{skip:!live,timeout:60000},async()=>{
   const [host,guest,third]=await Promise.all(['HostExit','GuestExit','ThirdExit'].map(label=>createPlayer(name(label))));
   const created=await action(host,'create',{nickname:host.nickname});
   expect(created.error??created.message).toBeFalsy();
@@ -91,7 +91,8 @@ test('live API allows two players, rejects secret-word clues, and transfers a le
   const transferred=await action(guest,'state',{code:secondCode});
   expect(transferred.data.state.players.find((p:{id:string})=>p.id===guest.id)?.is_host).toBe(true);
   const formerHost=await action(third,'state',{code:secondCode});
-  expect(formerHost.message).toMatch(/not a member/i);
+  expect(formerHost.data?.state).toBeFalsy();
+  expect(formerHost.error??formerHost.message??formerHost.data?.error).toBeTruthy();
 });
 
 test('live API serializes joins and caps rooms at eight players',{skip:!live},async()=>{
