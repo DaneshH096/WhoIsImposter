@@ -4,8 +4,12 @@ test('landing page is responsive and explains the game', async ({ page }) => {
   await page.setViewportSize({width:390,height:844});
   await page.goto('/');
   await expect(page.getByRole('heading',{name:/someone here is lying/i})).toBeVisible();
-  await expect(page.getByText('4–8 players')).toBeVisible();
-  await expect(page.getByPlaceholder('e.g. suspicious potato')).toBeVisible();
+  await expect(page.getByText('2–8 players')).toBeVisible();
+  await expect(page.getByRole('button',{name:/create a room/i})).toBeVisible();
+  await expect(page.getByRole('button',{name:/join a room/i})).toBeVisible();
+  await page.getByRole('button',{name:/create a room/i}).click();
+  await expect(page.getByLabel('YOUR NICKNAME')).toBeVisible();
+  await expect(page.getByLabel('Room code')).toHaveCount(0);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth);
   expect(overflow).toBe(false);
 });
@@ -36,6 +40,9 @@ test('voice clue transcript is reviewed in the clue field before submission', as
   await page.goto('/');
   await page.getByRole('button',{name:/peek at the lobby design/i}).click();
   await page.getByRole('button',{name:/start round/i}).click();
+  await expect(page.getByRole('dialog')).toContainText('Never say or mention your own secret word');
+  await expect(page.getByRole('dialog')).toContainText('Role reveal');
+  await page.getByRole('button',{name:/let the mystery begin/i}).click();
   await page.getByRole('button',{name:/preview: advance phase/i}).click();
   await expect(page.getByRole('textbox',{name:'Your clue'})).toBeVisible();
   await page.getByRole('button',{name:'Start voice input'}).click();
@@ -52,6 +59,7 @@ test('finished match shows a winner and final leaderboard', async ({ page }) => 
   await page.goto('/');
   await page.getByRole('button',{name:/peek at the lobby design/i}).click();
   await page.getByRole('button',{name:/start round/i}).click();
+  await page.getByRole('button',{name:/let the mystery begin/i}).click();
   for(let i=0;i<5;i++) await page.getByRole('button',{name:/preview: advance phase/i}).click();
   await expect(page.getByRole('heading',{name:'Final scores'})).toBeVisible();
   await expect(page.getByText(/wins the suspicion crown/i)).toBeVisible();
