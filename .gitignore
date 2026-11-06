@@ -9,3 +9,6 @@ test-results/
 work/playwright-browsers/
 work/pw-browsers/
 
+.npm-cache/
+.playwright-browsers/
+
