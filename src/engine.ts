@@ -11,7 +11,7 @@ export function nextPhase(phase: Phase, round: number): Phase {
   return phase;
 }
 export function assignRoles(playerIds: string[], impostorId: string, word: string, relatedWord: string) {
-  if (playerIds.length < 4 || playerIds.length > 8 || !playerIds.includes(impostorId)) throw new Error('Invalid room roster');
+  if (playerIds.length < 2 || playerIds.length > 8 || !playerIds.includes(impostorId)) throw new Error('Invalid room roster');
   return Object.fromEntries(playerIds.map(id => [id, { role: id === impostorId ? 'impostor' : 'detective', word: id === impostorId ? relatedWord : word }]));
 }
 export function resolveVote(votes: Record<string, string>, impostorId: string, playerIds: string[]) {
@@ -27,3 +27,4 @@ export function scoreRound(players: Player[], impostorId: string, votes: Record<
   const scores = Object.fromEntries(players.map(p => [p.id, p.score + (p.id === impostorId ? (result.impostorSurvived ? 2 : 0) + (guessCorrect ? 1 : 0) : (votes[p.id] === impostorId ? 2 : 0))]));
   return { ...result, scores };
 }
+
