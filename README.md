@@ -54,7 +54,7 @@ Import this repository into Vercel, select the Vite preset, and set `VITE_SUPABA
 
 - `npm test`: 7 Vitest tests passed.
 - `npm run build`: TypeScript check and Vite production build passed.
-- `npm run test:e2e`: 5 browser checks cover responsive layout, lobby rendering, invite URL copying, mock speech transcript review, and the final leaderboard. Two additional live API checks run when `RUN_LIVE_GAME_TESTS=true` and verify server-side host authorization, removal and reconnection blocks, secret isolation, and concurrent room capacity.
+- `npm run test:e2e`: 5 browser checks cover responsive layout, lobby rendering, invite URL copying, the pre-round rules modal, mock speech transcript review, and the final leaderboard. Three live API checks run when `RUN_LIVE_GAME_TESTS=true` and verify host authorization, removal and reconnect blocks, private roles, two-player starts, clue word rejection, host transfer, and concurrent room capacity.
 - Production deployment: [https://who-is-the-impostor-taupe.vercel.app](https://who-is-the-impostor-taupe.vercel.app) returned HTTP 200 over HTTPS.
 - Four independent browser sessions created and joined a production room, received private role reveals, submitted clues and votes, and completed three rounds. The database recorded three settled round results and a finished leaderboard.
 - Follow-up production acceptance: four separate browser sessions joined through a copied invitation URL, used mocked browser speech recognition to submit a clue, exercised duplicate clue/vote and self-vote rejection, completed three rounds, reloaded the final leaderboard, and matched expected scores (6 for detectives, 3 for the impostor who guessed correctly). The database confirmed one impostor and one result per round. Discussion deadlines were expired in a controlled test room to shorten this acceptance run; production discussion duration remains 60 seconds.
@@ -65,5 +65,7 @@ Import this repository into Vercel, select the Vite preset, and set `VITE_SUPABA
 ## Rules and phase durations
 
 Each match has three rounds. Before each round, everyone reviews the shared rules and timing card; the host starts the round. The server runs each phase through its deadline (clues and votes can finish early after everyone submits). The default role reveal, clue, discussion, voting, and results durations are 15, 60, 60, 30, and 15 seconds. Every round selects one impostor and a related word pair; detectives share the other word. Each player submits one clue and one private vote, with no self-votes. A tie produces no accusation and counts as impostor survival. Correct detective votes earn 2 points; an impostor who survives gains 2, and a correct impostor word guess gains 1. Guest sessions persist in the browser for reconnecting. A host may remove another player after confirmation or leave the room (host ownership transfers immediately to the oldest remaining player); removed members are denied further room actions, and removal of the impostor settles that round. After 120 seconds without an update from the host, the scheduled worker atomically transfers ownership to the oldest active member seen in the last 30 seconds. Realtime broadcasts room changes, with a four-second authenticated state poll as a reconnect fallback.
+
+
 
 
