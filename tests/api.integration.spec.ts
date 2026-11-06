@@ -49,13 +49,49 @@ test('live API enforces host ownership, removal, reconnection and private roles'
     const denied=await action(player,verb,{code,...fields});
     expect(denied.message).toMatch(/removed by the host/i);
   }
-  const started=await action(host,'start_round',{code});
+  const rules=await action(host,'start_round',{code});
+  expect(rules.error??rules.message).toBeFalsy();
+  expect(rules.data.state.rules_open).toBe(true);
+  const started=await action(host,'begin_round',{code});
   expect(started.error??started.message).toBeFalsy();
   expect(started.data.role?.word).toBeTruthy();
   expect(JSON.stringify(started.data.state)).not.toContain(started.data.role.word);
   expect(started.data.state.players).toHaveLength(4);
   const lateJoin=await action(players[5],'join',{nickname:players[5].nickname,code});
   expect(lateJoin.message).toMatch(/already in progress/i);
+});
+
+test('live API allows two players, rejects secret-word clues, and transfers a leaving host',{skip:!live},async()=>{
+  const [host,guest,third]=await Promise.all(['HostExit','GuestExit','ThirdExit'].map(label=>createPlayer(name(label))));
+  const created=await action(host,'create',{nickname:host.nickname});
+  expect(created.error??created.message).toBeFalsy();
+  const code=created.data.state.code as string;
+  expect(created.data.state.players).toHaveLength(1);
+  const joined=await action(guest,'join',{nickname:guest.nickname,code});
+  expect(joined.error??joined.message).toBeFalsy();
+  const opened=await action(host,'start_round',{code});
+  expect(opened.error??opened.message).toBeFalsy();
+  expect(opened.data.state.rules_open).toBe(true);
+  const started=await action(host,'begin_round',{code});
+  expect(started.error??started.message).toBeFalsy();
+  const secret=started.data.role.word as string;
+  await new Promise(resolve=>setTimeout(resolve,15500));
+  const cluePhase=await action(host,'state',{code});
+  expect(cluePhase.data.state.phase).toBe('clue');
+  const forbidden=await action(host,'clue',{code,clue:`I say ${secret} now`});
+  expect(forbidden.message).toMatch(/cannot mention your secret word/i);
+
+  const secondRoom=await action(third,'create',{nickname:third.nickname});
+  const secondCode=secondRoom.data.state.code as string;
+  const other=await action(guest,'join',{nickname:guest.nickname,code:secondCode});
+  expect(other.error??other.message).toBeFalsy();
+  const left=await action(third,'leave',{code:secondCode});
+  expect(left.error??left.message).toBeFalsy();
+  expect(left.data.left).toBe(true);
+  const transferred=await action(guest,'state',{code:secondCode});
+  expect(transferred.data.state.players.find((p:{id:string})=>p.id===guest.id)?.is_host).toBe(true);
+  const formerHost=await action(third,'state',{code:secondCode});
+  expect(formerHost.message).toMatch(/not a member/i);
 });
 
 test('live API serializes joins and caps rooms at eight players',{skip:!live},async()=>{
